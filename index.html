@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 
-<html>
+<html lang="ja-JP">
 <head>
    <title>いけないボーダーライン</title>
    <meta charset="utf-8">
-   <meta lang="ja_JP">
+   <meta name="viewport" content="initial-scale=1">
    <style type="text/css">
         .background-image {
           position: fixed;
@@ -30,10 +30,14 @@
           margin-left: 20px;
           margin-right: 20px;
         }
+        @media (max-width: 640px){
+            h1 { font-size: 200% !important; }
+			#lyrics h1 { font-size: 120% !important; margin: .5em 0px !important; }
+        }
     </style>
    <link href="http://apps.bdimg.com/libs/bootstrap/3.3.0/css/bootstrap.min.css" rel="stylesheet">
    <script src="http://apps.bdimg.com/libs/jquery/2.0.0/jquery.min.js"></script>
-   <script src="http://apps.bdimg.com/libs/bootstrap/3.3.0/js/bootstrap.min.js"></script>
+   <!-- <script src="http://apps.bdimg.com/libs/bootstrap/3.3.0/js/bootstrap.min.js"></script> -->
    <script type="text/javascript">
   $(document).ready(function(){
       var browser={
@@ -54,15 +58,21 @@
              }(),
              language:(navigator.browserLanguage || navigator.language).toLowerCase()
          };
-         if (browser.versions.iPhone||browser.versions.android||browser.versions.iPad) {
-            $("#mobile").show();
-            });
-         };
          if (browser.versions.webKit) {
             $('#chrome').show();
          };
+         if (browser.versions.iPhone||browser.versions.android||browser.versions.iPad) {
+            $("#mobile").show();
+            $('#chrome').hide();
+         };
+         $('#button-play').on('touchstart click',function(){
+             if ('AudioContext' in window || 'webkitAudioContext' in window){
+				musicSource.start(0);
+			 } else { music.play(); }
+         });
 
     });
+    
   
    </script>
 </head>
@@ -74,13 +84,13 @@
  <div id="blink">
     <strong>
         <div class="alert alert-danger" style="opacity:0.7;"><h1 class='text-center'>いけないボーダーライン 再生中</h1>
-        <p class='text-center' id='chrome' style="display:none">Please open a new window for your other tasks.<br/>For Chrome will slow down its timer, so the music won't loop seamlessly.</p>
-        <p class='text-center' id='mobile' style="display:none">For Moblie please touch to play.<audio id="player" loop="loop" preload="auto" controls src="http://7xt9pq.com2.z0.glb.clouddn.com/girigiriai_seamless_2.m4a"></audio></p>
+        <p class='text-center' id='chrome' style="display:none">Please open a new window for your other tasks.<br/>For Chrome will slow down its timer in background, so the music won't loop seamlessly.</p>
+        <p class='text-center' id='mobile' style="display:none">For moblie browsers, please <button id="button-play">tap here</button> to play.</p>
     </div>
-    <div align="left" style="text-align:center;">
+    <div align="left" style="text-align:center;" id="lyrics">
         <h1>ギリギリ愛 いけないボーダーライン</h1>
         <h1>難易度Gでも全て壊してみせる</h1>
-        <h1>ギリギリmind さらなるGへと</h1>
+        <h1>ギリギリ舞 さらなるGへと</h1>
         <h1>意識は溶ける 体は制御不能</h1>
         <h1>いっちゃうかもね</h1>
     </div>
@@ -98,12 +108,29 @@
 </div>
 </div>
 </div>
-<script src="seamless.js"></script>
-   <script>
-    var loop=new SeamlessLoop();
-    loop.addUri("http://7xt9pq.com2.z0.glb.clouddn.com/girigiriai_seamless_2.ogg", 26448, "sound1");
-    loop.start("sound1");
-   </script>
+<script src="AudioSampleLoader.js"></script>
+<script>
+if ('AudioContext' in window || 'webkitAudioContext' in window){
+	var ac = new (window.AudioContext || window.webkitAudioContext)();
+	var loader = new AudioSampleLoader();
+	loader.ctx = ac;
+	loader.src = "http://7xt9pq.com2.z0.glb.clouddn.com/girigiriai_seamless_2.m4a";
+	loader.onload = function(){ 
+		window.musicBuffer=loader.response;
+		window.musicSource=ac.createBufferSource();
+		musicSource.buffer = musicBuffer;
+		musicSource.connect(ac.destination);
+		musicSource.loop=true;
+		musicSource.start(0);
+	};
+	loader.onerror = null;
+	loader.send();
+} else { // fallback to html5 audio
+	window.music = new Audio("http://7xt9pq.com2.z0.glb.clouddn.com/girigiriai_seamless_2.m4a");
+	music.loop="loop";
+	music.play();
+}
+</script>
 
 </body>
 </html>
